@@ -8,6 +8,15 @@ public class Calculator {
         scanner = new Scanner(System.in); // Initialize scanner
     }
 
+    // Getters and Setters for Scanner
+
+    public Scanner getScanner() {
+        return scanner;
+    }
+    public void setScanner(Scanner scanner) {
+        this.scanner = scanner;
+    }
+
     public void start() {
         int option;
         // Do-while loop to keep the program running until the user decides to exit
