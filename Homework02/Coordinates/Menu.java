@@ -19,6 +19,7 @@ public class Menu {
         } while (choice != 3);
     }
 
+    // Convert polar to Cartesian coordinates
     private void polarToCartesian() {
         double r = io.getDoubleInput("Enter r: ");
         double theta = io.getDoubleInput("Enter theta: ");
@@ -26,6 +27,7 @@ public class Menu {
         System.out.printf("(x: %.2f, y: %.2f)%n", result[0], result[1]);
     }
 
+    // Convert Cartesian to polar coordinates
     private void cartesianToPolar() {
         double x = io.getDoubleInput("Enter x: ");
         double y = io.getDoubleInput("Enter y: ");
