@@ -7,7 +7,7 @@ public class App {
 
         try {
 
-            BufferedImage image = ImageRGB.loadImage("Homework03/Images/Input1.png");
+            BufferedImage image = ImageRGB.loadImage("Homework03/Images/Input2.jpg");
 
             int[][] matrix = ImageRGB.convertToGrayMatrix(image);
 
@@ -21,7 +21,7 @@ public class App {
 
             BufferedImage reconstructed = ImageRGB.grayMatrixToImage(decompressed);
 
-            ImageRGB.saveImage(reconstructed,"Homework03/Outputs/Output1.png");
+            ImageRGB.saveImage(reconstructed,"Homework03/Outputs/Output2.png");
 
             System.out.println("Process Completed Successfully!");
 
