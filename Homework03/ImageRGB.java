@@ -49,7 +49,7 @@ public class ImageRGB {
         // Type Byte Gray indicates the image will be a grayscale image where each pixel is represented by a single byte (0-255)
 
 
-        // Iterates through each pixel in the grayscale matrix, converts the grayscale value back to an RGB format, and sets the corresponding pixel in the BufferedImage.
+        // Iterates through each pixel in the grayscale matrix, converts the grayscale value to an RGB format, and sets the corresponding pixel in the BufferedImage.
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
 
