@@ -1,4 +1,4 @@
-package Partials.ImageEditor;
+package Partials.ImageEditor.src;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;

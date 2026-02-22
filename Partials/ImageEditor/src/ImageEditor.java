@@ -1,4 +1,4 @@
-package Partials.ImageEditor;
+package Partials.ImageEditor.src;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -46,8 +46,33 @@ public class ImageEditor {
             }
         }
     }
+    
 
+    // Crop the image using  2(x,y) coordinates as the opposite corners of a rectangle
+    public void crop(int x1, int y1, int x2, int y2) {
 
+        // The method calculates the minimum x and y coordinates to determine the corners of the rectangle.
+        int xmin = Math.min(x1, x2);
+        int ymin = Math.min(y1, y2);
+        int width = Math.abs(x2 - x1);
+        int height = Math.abs(y2 - y1);
+
+        // Validación básica de límites
+        if (xmin < 0 || ymin < 0 || xmin + width > currentImage.getWidth() || ymin + height > currentImage.getHeight()) {
+            throw new IllegalArgumentException("Crop coordinates are out of bounds");
+        }
+
+        BufferedImage newImage = new BufferedImage(width, height, currentImage.getType());
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int color = currentImage.getRGB(xmin + x, ymin + y);
+                newImage.setRGB(x, y, color);
+            }   
+        }
+
+        currentImage = newImage;
+    }
 
 
     // Save current image to specified path
