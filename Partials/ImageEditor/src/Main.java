@@ -7,22 +7,16 @@ public class Main {
 
     public static void main(String[] args) {
 
-        System.out.println(System.getProperty("user.dir"));
-
         try {
 
             BufferedImage img = ImageLoader.loadImage("Partials/ImageEditor/images/input.png");
-
             ImageEditor editor = new ImageEditor(img);
 
-            editor.invertColors();
-
-            editor.save("Partials/ImageEditor/images/output.png");
-
-            System.out.println("Imagen procesada correctamente.");
+            DataMenu menu = new DataMenu(editor);
+            menu.start();
 
         } catch (IOException e) {
-            System.out.println("Error: " + e.getMessage());
+            System.out.println("Error inicial: " + e.getMessage());
         }
     }
 }
