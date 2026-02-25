@@ -57,7 +57,8 @@ public class ImageEditor {
         int width = Math.abs(x2 - x1);
         int height = Math.abs(y2 - y1);
 
-        // Validación básica de límites
+        // Coordinates Validation System
+        // The cropped area should be withing the bounds of the original image.
         if (xmin < 0 || ymin < 0 || xmin + width > currentImage.getWidth() || ymin + height > currentImage.getHeight()) {
             throw new IllegalArgumentException("Crop coordinates are out of bounds");
         }
@@ -76,7 +77,8 @@ public class ImageEditor {
 
 
     // Save current image to specified path
-    public void save(String path) throws IOException {
+    public void save(String name) throws IOException {
+        String path = "Partials/ImageEditor/outputs/" + name ;
         ImageLoader.saveImage(currentImage, path);
     }
 }

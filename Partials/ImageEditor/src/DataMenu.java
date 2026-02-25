@@ -5,9 +5,16 @@ import java.io.IOException;
 
 public class DataMenu {
 
+
+    // Attributes
     private Scanner scanner;
     private ImageEditor editor;
 
+    // Constructor
+    // Initializes DataMenu with an ImageEditor instance
+    // Scanner initialized for user input
+    // In this case, scanner is in the constructor because it is only used within DataMenu
+    // And it is more efficient to create it once and reuse it.
     public DataMenu(ImageEditor editor) {
         this.editor = editor;
         this.scanner = new Scanner(System.in);
@@ -15,14 +22,17 @@ public class DataMenu {
 
     public void start() {
 
+        // Initialize the option variable with an unvalid value to enter the loop
         int option = -1;
 
+        // While loop to keep the menu running
         while (option != 5) {
 
+            // Display the manu options to the user
             printMenu();
 
             try {
-                option = Integer.parseInt(scanner.nextLine());
+                option = Integer.parseInt(scanner.nextLine()); // Get user input and convert it to integer
 
                 switch (option) {
                     case 1:
@@ -113,7 +123,7 @@ public class DataMenu {
 
     private void handleSave() throws IOException {
 
-        System.out.print("Enter the name of the output file ('my_image.png'):");
+        System.out.print("Enter the name of the output file (example: 'my_image.png')\nMake sure to include '.png':");
         String path = scanner.nextLine();
 
         editor.save(path);
