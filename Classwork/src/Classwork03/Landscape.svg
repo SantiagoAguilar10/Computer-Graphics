@@ -1,0 +1,28 @@
+<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+
+// Background Fill
+<rect x="0" y="0" width="400" height="300" fill="#ffffff" />
+
+// Sun Rays
+<path d="M 15 61.5 L 135 63.5" stroke="#ff6200b3" fill="none" stroke-width="2" />
+<path d="M 74 2.5 L 76 122.5" stroke="#ff6200b3" fill="none" stroke-width="2" />
+<path d="M 32.5 25 L 115 102.5" stroke="#ff6200b3" fill="none" stroke-width="2" />
+<path d="M 32.5 102.5 L 115 25" stroke="#ff6200b3" fill="none" stroke-width="2" />
+
+// Sun (Circle)
+<circle cx="75" cy="62.5" r="35" fill="#fffb00" />
+
+// Grass
+<rect x="0" y="237.5" width="400" height="62.5" fill="#00ff00" />
+
+// Hills (Quadratic Bezier Curves)
+<path d="M 0 240 Q 25 175 50 240 Z" fill="#00ff00" />
+<path d="M 50 240 Q 75 175 100 240 Z" fill="#00ff00" />
+<path d="M 100 240 Q 125 175 150 240 Z" fill="#00ff00" />
+<path d="M 150 240 Q 175 175 200 240 Z" fill="#00ff00" />
+<path d="M 200 240 Q 225 175 250 240 Z" fill="#00ff00" />
+<path d="M 250 240 Q 275 175 300 240 Z" fill="#00ff00" />
+<path d="M 300 240 Q 325 175 350 240 Z" fill="#00ff00" />
+<path d="M 350 240 Q 375 175 400 240 Z" fill="#00ff00" />
+</svg>
+
