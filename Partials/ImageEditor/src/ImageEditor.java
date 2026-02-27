@@ -18,18 +18,29 @@ public class ImageEditor {
     }
 
     // Invert Colors
-    public void invertColors() {
+    public void invertColors(int x1, int y1, int x2, int y2) {
+
+        // Validate coordinates
+        if (x1 < 0 || y1 < 0 || x2 < 0 || y2 < 0 ||
+            x1 >= currentImage.getWidth() || x2 >= currentImage.getWidth() ||
+            y1 >= currentImage.getHeight() || y2 >= currentImage.getHeight()) {
+            throw new IllegalArgumentException("Coordinates are out of bounds");
+        }
+
+        // Select the area to invert colors based on the provided coordinates
+        int xmin = Math.min(x1, x2);
+        int ymin = Math.min(y1, y2);
 
         // Get width & height
-        int width = currentImage.getWidth();
-        int height = currentImage.getHeight();
+        int width = Math.abs(x2 - x1);
+        int height = Math.abs(y2 - y1);
 
         // For nested loop to modify each pixel
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
 
                 // Get RGB values from each pixel
-                int p = currentImage.getRGB(x, y);
+                int p = currentImage.getRGB(xmin + x, ymin + y);
                 
                 // RGB values are stored in a single integer
                 // To extract them individually, bitwise operations are required
@@ -42,7 +53,7 @@ public class ImageEditor {
                 // Combine the inverted RGB values back into a single integer
                 p = (a << 24) | (r << 16) | (g << 8) | b;
 
-                currentImage.setRGB(x, y, p); // Set the new pixel value in the image
+                currentImage.setRGB(xmin + x, ymin + y, p); // Set the new pixel value in the image
             }
         }
     }

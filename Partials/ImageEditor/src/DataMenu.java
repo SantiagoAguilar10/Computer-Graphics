@@ -35,7 +35,7 @@ public class DataMenu {
                 switch (option) {
                     case 1:
                         // As invertColors does not require additional user input, it is called directly here.
-                        editor.invertColors();
+                        handleinvertColors();
                         System.out.println("Inverted colors process finished successfully.");
                         break;
 
@@ -83,7 +83,17 @@ public class DataMenu {
 
     // Particular methods to handle the specific user choices in the menu.
 
-    // As invertColors does not require additional user input, it is called directly in the switch statement at the start method.
+    private void handleinvertColors() {
+        System.out.println("Enter x1:");
+        int x1 = Integer.parseInt(scanner.nextLine());
+        System.out.println("Enter y1:");
+        int y1 = Integer.parseInt(scanner.nextLine());
+        System.out.println("Enter x2:");
+        int x2 = Integer.parseInt(scanner.nextLine());
+        System.out.println("Enter y2:");
+        int y2 = Integer.parseInt(scanner.nextLine());
+        editor.invertColors(x1, y1, x2, y2);
+    }
 
     // Handle crop.
     // The user should input 2(x, y) coordinates as the opposite corners of a quadrilateral.
