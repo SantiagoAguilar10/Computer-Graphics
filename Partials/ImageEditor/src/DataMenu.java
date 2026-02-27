@@ -34,8 +34,10 @@ public class DataMenu {
             try {
                 option = Integer.parseInt(scanner.nextLine()); // Get user input and convert it to integer
 
+                // Switch statement to handle user's choices and call the respective methods in ImageEditor
                 switch (option) {
                     case 1:
+                        // As invertColors does not require additional user input, it is called directly here.
                         editor.invertColors();
                         System.out.println("Inverted colors process finished successfully.");
                         break;
@@ -53,7 +55,7 @@ public class DataMenu {
                         break;
 
                     case 5:
-                        System.out.println("Check your image at the 'Outputs' Folder");
+                        System.out.println("Thanks for using my Image Editor!");
                         break;
 
                     default:
@@ -70,8 +72,10 @@ public class DataMenu {
         }
     }
 
+    // Method to display the menu options to the user
     private void printMenu() {
         System.out.println("\nIMAGE EDITOR");
+        System.out.println("\nThe Image's current dimensions are: " + editor.getCurrentImage().getWidth() + "x" + editor.getCurrentImage().getHeight()+ "\n");
         System.out.println("1. Invert Colors");
         System.out.println("2. Crop");
         System.out.println("3. Rotate");
@@ -80,6 +84,13 @@ public class DataMenu {
         System.out.print("Select an option: ");
     }
 
+    // Particular methods to handle the specific user choices in the menu.
+
+    // As invertColors does not require additional user input, it is called directly in the switch statement at the start method.
+
+    // Handle crop.
+    // The user should input 2(x, y) coordinates as the opposite corners of a quadrilateral.
+    // The method will call the crop method in ImageEditor with the user inputs as parameters.
     private void handleCrop() {
 
         System.out.print("Enter x1: ");
@@ -99,6 +110,9 @@ public class DataMenu {
         System.out.println("Crop process finished successfully.");
     }
 
+    // Handle Rotate.
+    // The user should input 2(x, y) coordinates as the opposite corners of a quadrilateral.
+    // The method will call the rotate method in ImageEditor with the user inputs as parameters.
     private void handleRotate() {
 
         System.out.print("Enter x1: ");
@@ -113,7 +127,7 @@ public class DataMenu {
         System.out.print("Enter y2: ");
         int y2 = Integer.parseInt(scanner.nextLine());
 
-        System.out.print("Enter rotation angle: (90, 180, 270, 360): ");
+        System.out.print("Enter rotation angle: (90, 180, 270): ");
         int angle = Integer.parseInt(scanner.nextLine());
 
         editor.rotate(x1, y1, x2, y2, angle);
@@ -121,13 +135,19 @@ public class DataMenu {
         System.out.println("Rotation process finished successfully.");
     }
 
+
+    // Handle Save.
+    // The user should input the name of the output file
+    // Example: "I_need_more_scholarship_money.png"
     private void handleSave() throws IOException {
 
         System.out.print("Enter the name of the output file (example: 'my_image.png')\nMake sure to include '.png':");
         String path = scanner.nextLine();
 
+        // The method will call the save method in ImageEditor with the user input as parameter.
         editor.save(path);
 
+        // Confirmation message to the user after saving the image.
         System.out.println("Image saved successfully at: Outputs/" + path);
     }
 }

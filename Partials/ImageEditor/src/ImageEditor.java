@@ -42,7 +42,7 @@ public class ImageEditor {
                 // Combine the inverted RGB values back into a single integer
                 p = (a << 24) | (r << 16) | (g << 8) | b;
 
-                currentImage.setRGB(x, y, p);
+                currentImage.setRGB(x, y, p); // Set the new pixel value in the image
             }
         }
     }
@@ -63,6 +63,8 @@ public class ImageEditor {
             throw new IllegalArgumentException("Crop coordinates are out of bounds");
         }
 
+        // A new BufferedImage is created to store the cropped area.
+        // The type of the new image is the same as the original
         BufferedImage newImage = new BufferedImage(width, height, currentImage.getType());
 
 
@@ -77,25 +79,29 @@ public class ImageEditor {
         currentImage = newImage; // The current image is updated to the cropped version.
     }
 
-    public void rotate(int x, int y, int width, int height, int angle) {
+    public void rotate(int x1, int y1, int x2, int y2, int angle) {
 
         // Validation of parameters
         if (angle != 90 && angle != 180 && angle != 270) {
             throw new IllegalArgumentException("Angle must be 90, 180 or 270.");
         }
 
+        // Ensure coordinates are properly ordered (in case user enters them reversed)
+        int x = Math.min(x1, x2);
+        int y = Math.min(y1, y2);
+        int width = Math.abs(x2 - x1);
+        int height = Math.abs(y2 - y1);
+
         // Validate that the selected area is within the image bounds
-        if (x < 0 || y < 0 || 
-            x + width > currentImage.getWidth() || 
+        if (x < 0 || y < 0 ||
+            x + width > currentImage.getWidth() ||
             y + height > currentImage.getHeight()) {
             throw new IllegalArgumentException("Selection out of bounds.");
         }
 
-
-        // Calculate the center of the selected area as an anchir point for rotation
+        // Calculate the center of the selected area as an anchor point for rotation
         double cx = x + width / 2.0;
         double cy = y + height / 2.0;
-
 
         // Create a "temporary" image to store the selected area before rotation
         BufferedImage temp = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -107,14 +113,12 @@ public class ImageEditor {
             }
         }
 
-
         // Clearing the original area by filling it with black
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
                 currentImage.setRGB(x + i, y + j, 0x000000);
             }
         }
-
 
         // Apply rotation to each pixel in the temporary image 
         // and map it back to the original image based on the calculated new coordinates
@@ -138,7 +142,7 @@ public class ImageEditor {
                     case 90:
                         // (x', y') = (-y, x)
                         // The new coordinates are calculated by swapping the relative x and y values
-                        // and "reversing" the y value for a 90 degrees rotation
+                        // and reversing the y value for a 90 degrees rotation
                         rotatedX = -dy;
                         rotatedY = dx;
                         break;
@@ -153,7 +157,7 @@ public class ImageEditor {
                     case 270:
                         // (x', y') = (y, -x)
                         // The new coordinates are calculated by swapping the relative x and y values
-                        // and "reversing" the x value for a 270 degrees rotation
+                        // and reversing the x value for a 270 degrees rotation
                         rotatedX = dy;
                         rotatedY = -dx;
                         break;
@@ -162,7 +166,6 @@ public class ImageEditor {
                 // Calculate the new coordinates in the original image by adding the rotated relative coordinates to the anchor point
                 int newX = (int) Math.round(cx + rotatedX);
                 int newY = (int) Math.round(cy + rotatedY);
-
 
                 // Drawing the rotated pixels back to the original image
                 // Only if the new coordinates are within the bounds of the image
