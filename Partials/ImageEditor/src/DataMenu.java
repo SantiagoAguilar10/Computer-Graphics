@@ -5,7 +5,6 @@ import java.io.IOException;
 
 public class DataMenu {
 
-
     // Attributes
     private Scanner scanner;
     private ImageEditor editor;
@@ -13,11 +12,9 @@ public class DataMenu {
     // Constructor
     // Initializes DataMenu with an ImageEditor instance
     // Scanner initialized for user input
-    // In this case, scanner is in the constructor because it is only used within DataMenu
-    // And it is more efficient to create it once and reuse it.
-    public DataMenu(ImageEditor editor) {
+    public DataMenu(ImageEditor editor, Scanner scanner) {
         this.editor = editor;
-        this.scanner = new Scanner(System.in);
+        this.scanner = scanner;
     }
 
     public void start() {

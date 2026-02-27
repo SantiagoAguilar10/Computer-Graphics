@@ -79,6 +79,7 @@ public class ImageEditor {
         currentImage = newImage; // The current image is updated to the cropped version.
     }
 
+
     public void rotate(int x1, int y1, int x2, int y2, int angle) {
 
         // Validation of parameters
@@ -180,6 +181,7 @@ public class ImageEditor {
     }
 
 
+    
     // Save current image to specified path
     public void save(String name) throws IOException {
         String path = "Partials/ImageEditor/outputs/" + name ;
