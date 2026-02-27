@@ -116,7 +116,7 @@ public class DataMenu {
         System.out.print("Enter rotation angle: (90, 180, 270, 360): ");
         int angle = Integer.parseInt(scanner.nextLine());
 
-        //editor.rotate(x1, y1, x2, y2, angle);
+        editor.rotate(x1, y1, x2, y2, angle);
 
         System.out.println("Rotation process finished successfully.");
     }
