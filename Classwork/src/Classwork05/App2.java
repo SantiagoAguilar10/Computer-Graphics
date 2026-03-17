@@ -38,10 +38,13 @@ public class App2 {
                 return;
             }
 
+
+            // Curl se divide en partes para evitar problemas con las comillas y el formato del JSON.
+            
             //Crear JSON
             String jsonData = "{"
                     + "\"model\":\"gpt-4.1-mini\","
-                    + "\"input\":\"Translate the following text to English if it is Spanish, or to Spanish if it is English:\\n"
+                    + "\"input\":\"Translate the following text to English if it is in Spanish, or to Spanish if it is in English:\\n"
                     + text + "\""
                     + "}";
 
