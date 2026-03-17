@@ -16,7 +16,7 @@ public class App2 {
         try {
 
             //Leer archivo text.txt
-            BufferedReader fileReader = new BufferedReader(new FileReader("Computer-Graphics/Classworks/src/Classwork05/text.txt"));
+            BufferedReader fileReader = new BufferedReader(new FileReader("./text.txt"));
             StringBuilder textBuilder = new StringBuilder();
 
             String line;
