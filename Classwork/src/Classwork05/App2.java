@@ -6,31 +6,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-// Este código, obtiene la API Key desde un archivo .env
-/*
-* Reglas del archivo .env para que funcione con el código:
-*
-* 1. Debe estar en la carpeta raíz (no dentro de src).
-* 2. La Api Key debe estar en formato:
-*      VARIABLE=valor
-* 3. No debe haber espacios alrededor del '='
-* 4. Ejemplo:
-*      OpenAIToken=sk-abcd....89
-*/
+// Este código, a diferencia del App.java, obtiene la API Key desde una variable de entorno en lugar de un archivo .env.
+// En caso de que no funcione App.java, es más recomensable usar este código.
 
-// En caso de que no funcione, es más recomensable usar el código de App2.java, 
-// que obtiene la API Key desde una variable de entorno.
-
-public class App {
-
-    // https://developers.openai.com/
+public class App2 {
 
     public static void main(String[] args) {
 
         try {
 
-            // Leer archivo text.txt
-            BufferedReader fileReader = new BufferedReader(new FileReader("./text.txt"));
+            //Leer archivo text.txt
+            BufferedReader fileReader = new BufferedReader(new FileReader("Computer-Graphics/Classworks/src/Classwork05/text.txt"));
             StringBuilder textBuilder = new StringBuilder();
 
             String line;
@@ -42,41 +28,24 @@ public class App {
             String text = textBuilder.toString();
 
             // Escapar comillas para JSON
-            // Si el texto contiene comillas, se deben sustituir para que el JSON sea válido.
-            // text = text.replace("\"", "\\\"");
+            text = text.replace("\"", "\\\"");
 
-
-            // Leer archivo .env
-            String token = null;
-
-            BufferedReader envReader = new BufferedReader(new FileReader(".env"));
-
-            while ((line = envReader.readLine()) != null) {
-
-                if (line.startsWith("OpenAIToken=")) {
-                    token = line.substring("OpenAIToken=".length());
-                    break;
-                }
-
-            }
-
-            envReader.close();
+            //Obtener API Key desde variable de entorno
+            String token = System.getenv("OpenAIToken");
 
             if (token == null) {
-                System.out.println("ERROR: OpenAIToken not found in .env");
+                System.out.println("ERROR: Environment variable OpenAIToken not found.");
                 return;
             }
 
-
-            // Crear JSON para OpenAI
+            //Crear JSON
             String jsonData = "{"
                     + "\"model\":\"gpt-4.1-mini\","
                     + "\"input\":\"Translate the following text to English if it is Spanish, or to Spanish if it is English:\\n"
                     + text + "\""
                     + "}";
 
-
-            // Comando curl
+            //Comando curl
             String[] command = new String[]{
                     "curl",
                     "https://api.openai.com/v1/responses",
@@ -85,13 +54,11 @@ public class App {
                     "-d", jsonData
             };
 
-
-            // Ejecutar proceso
+            //Ejecutar proceso
             ProcessBuilder builder = new ProcessBuilder(command);
             Process process = builder.start();
 
-
-            // Leer respuesta
+            //Leer respuesta
             InputStream inputStream = process.getInputStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -99,12 +66,11 @@ public class App {
                 System.out.println(line);
             }
 
-            process.waitFor(); // Esperar a que el proceso termine antes de destruirlo 
-            process.destroy(); // Terminar el proceso.
+            process.waitFor(); // Esperar a que el proceso termine antes de destruirlo
+            process.destroy();
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
-
     }
 }
