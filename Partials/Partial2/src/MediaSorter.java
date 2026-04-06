@@ -1,4 +1,4 @@
-package Partials.Partial2;
+package Partials.Partial2.src;
 
 public class MediaSorter {
     
