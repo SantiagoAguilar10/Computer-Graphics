@@ -12,12 +12,11 @@ public class Main {
         // Use of "var" to infer types in Java.
 
         // Ideal Process:
-        /* 
         var files = scanner.getFiles(folderPath);
         var mediaFiles = extractor.extractMetadata(files);
         var sorted = sorter.sortByDate(mediaFiles);
 
         creator.createVideo(sorted);
-        */
+
     }
 }
