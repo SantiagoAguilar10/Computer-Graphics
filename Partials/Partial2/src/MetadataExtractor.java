@@ -12,14 +12,14 @@ public class MetadataExtractor {
         List<MediaFile> result = new ArrayList<>();
 
         for (File file : files) {
-            String date = getDateFromExif(file);
+            String date = getDate(file);
             result.add(new MediaFile(file, date));
         }
 
         return result;
     }
 
-    private String getDateFromExif(File file) {
+    private String getDate(File file) {
         try {
             ProcessBuilder pb = new ProcessBuilder(
                 "cmd.exe", "/c",
