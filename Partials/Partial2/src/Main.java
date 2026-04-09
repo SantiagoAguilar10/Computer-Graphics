@@ -15,6 +15,13 @@ public class Main {
         var files = scanner.getFiles(folderPath);
         var mediaFiles = extractor.extractMetadata(files);
         var sorted = sorter.sortByDate(mediaFiles);
+        LocationSummary locations = extractor.extractFirstAndLastLocation(sorted);
+
+        if (locations != null) {
+            System.out.println(locations);
+        } else {
+            System.out.println("No se pudieron obtener ubicaciones.");
+        }
 
         creator.createVideo(sorted);
 

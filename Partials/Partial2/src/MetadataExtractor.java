@@ -44,4 +44,68 @@ public class MetadataExtractor {
 
         return "unknown";
     }
+
+    public LocationSummary extractFirstAndLastLocation(List<MediaFile> sortedMedia) {
+
+        if (sortedMedia == null || sortedMedia.isEmpty()) {
+            return null;
+        }
+
+        MediaFile first = sortedMedia.get(0);
+        MediaFile last = sortedMedia.get(sortedMedia.size() - 1);
+
+        GeoLocation firstLoc = getGeoLocation(first.getFile());
+        GeoLocation lastLoc = getGeoLocation(last.getFile());
+
+        return new LocationSummary(firstLoc, lastLoc);
+    }
+
+    private GeoLocation getGeoLocation(File file) {
+
+        try {
+            ProcessBuilder pb = new ProcessBuilder(
+                "cmd.exe", "/c",
+                "exiftool -n -GPSLatitude -GPSLongitude \"" + file.getAbsolutePath() + "\""
+            );
+
+            Process process = pb.start();
+
+            BufferedReader reader = new BufferedReader(
+                new InputStreamReader(process.getInputStream())
+            );
+
+            String line;
+            Double lat = null;
+            Double lon = null;
+
+            while ((line = reader.readLine()) != null) {
+
+                if (line.contains("GPS Latitude")) {
+                    lat = parseDoubleValue(line);
+                }
+
+                if (line.contains("GPS Longitude")) {
+                    lon = parseDoubleValue(line);
+                }
+            }
+
+            if (lat != null && lon != null) {
+                return new GeoLocation(lat, lon);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null; // no hay GPS
+    }
+
+    private double parseDoubleValue(String line) {
+        try {
+            return Double.parseDouble(line.split(":", 2)[1].trim());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0.0;
+    }
 }
