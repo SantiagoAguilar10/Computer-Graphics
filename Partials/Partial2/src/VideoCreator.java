@@ -15,7 +15,7 @@ public class VideoCreator {
 
             for (MediaFile mf : mediaFiles) {
                 writer.println("file '" + mf.getFile().getAbsolutePath() + "'");
-                writer.println("duration 2");
+                writer.println("duration 3");
             }
 
             writer.close();
