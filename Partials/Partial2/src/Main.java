@@ -27,7 +27,7 @@ public class Main {
         if (locations != null) {
             System.out.println(locations);
         } else {
-            System.out.println("No se pudieron obtener ubicaciones.");
+            System.out.println("Could not extract locations.");
         }
 
         creator.createVideo(sorted);

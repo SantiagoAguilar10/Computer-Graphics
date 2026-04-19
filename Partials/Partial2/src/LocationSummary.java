@@ -19,6 +19,6 @@ public class LocationSummary {
 
     @Override
     public String toString() {
-        return "Primera: " + firstLocation + "\nÚltima: " + lastLocation;
+        return "First: " + firstLocation + "\nLast: " + lastLocation;
     }
 }
