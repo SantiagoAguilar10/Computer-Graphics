@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import Partials.Partial2.src.GeminiRequest.DescriptionStore;
+import Partials.Partial2.src.GeminiRequest.GeminiService;
 import Partials.Partial2.src.Geo.LocationSummary;
 import Partials.Partial2.src.MediaReader.FileScanner;
 import Partials.Partial2.src.MediaReader.MediaSorter;

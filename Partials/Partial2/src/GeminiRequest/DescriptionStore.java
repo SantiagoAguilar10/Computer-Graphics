@@ -1,4 +1,4 @@
-package Partials.Partial2.src;
+package Partials.Partial2.src.GeminiRequest;
 
 import java.io.FileWriter;
 import java.io.IOException;
