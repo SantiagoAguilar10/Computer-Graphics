@@ -1,4 +1,4 @@
-package Partials.Partial2.src;
+package Partials.Partial2.src.MediaReader;
 import java.io.File;
 import java.util.List;
 

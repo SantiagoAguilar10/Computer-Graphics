@@ -1,4 +1,4 @@
-package Partials.Partial2.src;
+package Partials.Partial2.src.MediaReader;
 import java.io.File;
 import java.util.Set;
 
@@ -13,6 +13,7 @@ public class MediaFile {
 
     public File getFile() { return file; }
     public String getDateTaken() { return dateTaken; }
+
 
     public boolean isVideo() {
         String fileName = file.getName().toLowerCase();

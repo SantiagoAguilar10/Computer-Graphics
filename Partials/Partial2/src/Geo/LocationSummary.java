@@ -1,4 +1,4 @@
-package Partials.Partial2.src;
+package Partials.Partial2.src.Geo;
 
 public class LocationSummary {
     private GeoLocation firstLocation;

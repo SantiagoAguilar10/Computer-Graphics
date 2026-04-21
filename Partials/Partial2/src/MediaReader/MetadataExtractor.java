@@ -1,10 +1,13 @@
-package Partials.Partial2.src;
+package Partials.Partial2.src.MediaReader;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+
+import Partials.Partial2.src.Geo.GeoLocation;
+import Partials.Partial2.src.Geo.LocationSummary;
 
 public class MetadataExtractor {
 

@@ -1,18 +1,20 @@
-package Partials.Partial2.src;
+package Partials.Partial2.src.Video;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.List;
 
+import Partials.Partial2.src.MediaReader.MediaFile;
+
 public class VideoCreator {
 
-    private static final int DEFAULT_IMAGE_DURATION = 3; // seconds per image
+    private static final int DEFAULT_IMAGE_DURATION = 4; // seconds per image
 
     public void createVideo(List<MediaFile> mediaFiles) {
         createVideo(mediaFiles, DEFAULT_IMAGE_DURATION);
     }
 
     
-
+    // Function Overload
     public void createVideo(List<MediaFile> mediaFiles, int imageDurationSeconds) {
         try {
             File temp = new File("input.txt");
@@ -22,13 +24,15 @@ public class VideoCreator {
                 writer.println("file '" + mf.getFile().getAbsolutePath() + "'");
 
                 if (mf.isVideo()) {
-                    // Get the real duration from the video file using ffprobe
                     double duration = getVideoDuration(mf.getFile().getAbsolutePath());
                     writer.println("duration " + duration);
                 } else {
                     writer.println("duration " + imageDurationSeconds);
                 }
             }
+
+            MediaFile last = mediaFiles.get(mediaFiles.size() - 1);
+            writer.println("file '" + last.getFile().getAbsolutePath() + "'");
 
             writer.close();
 
@@ -45,7 +49,7 @@ public class VideoCreator {
                 " -vf \"" + videoFilter + "\"" +
                 " -vsync vfr" +
                 " -c:v libx264 -crf 23 -preset fast" +
-                " -c:a aac -b:a 128k" +  // keep audio from any source videos
+                " -an" +  // keep audio from any source videos
                 " output.mp4"
             );
 
