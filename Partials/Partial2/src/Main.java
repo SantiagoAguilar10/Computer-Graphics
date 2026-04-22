@@ -1,13 +1,17 @@
 package Partials.Partial2.src;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import Partials.Partial2.src.GeminiRequest.DescriptionStore;
 import Partials.Partial2.src.GeminiRequest.GeminiService;
 import Partials.Partial2.src.Geo.LocationSummary;
 import Partials.Partial2.src.MediaReader.FileScanner;
+import Partials.Partial2.src.MediaReader.MediaFile;
 import Partials.Partial2.src.MediaReader.MediaSorter;
 import Partials.Partial2.src.MediaReader.MetadataExtractor;
 import Partials.Partial2.src.Tools.MediaCopier;
@@ -16,15 +20,14 @@ import Partials.Partial2.src.Video.VideoCreator;
 public class Main {
     public static void main(String[] args) throws Exception {
 
+        final String GeminiAPIKey = "";
 
-        int n = 4; // seconds each image is shown in the slideshow
         String folderPath = "Partials/Partial2/MediaInput";
 
         // Scan, extract metadata, sort 
         FileScanner scanner   = new FileScanner();
         MetadataExtractor extractor = new MetadataExtractor();
         MediaSorter sorter    = new MediaSorter();
-        VideoCreator creator  = new VideoCreator();
 
         System.out.println("No errors in path");
 
@@ -44,17 +47,12 @@ public class Main {
             System.out.println("Could not extract locations.");
         }
 
-        // Create the overall video 
-        creator.createVideo(sorted, n);
-        String overallVideo = "output.mp4";
-        System.out.println("Overall video created: " + overallVideo);
-
         MediaCopier copier = new MediaCopier();
-        GeminiService gemini = new GeminiService("TU_API_KEY");
+        GeminiService gemini = new GeminiService(GeminiAPIKey);
         DescriptionStore store = new DescriptionStore();
 
         //Copiar archivos en orden
-        var copiedFiles = copier.copyFilesInOrder(sorted, "ordered_media");
+        var copiedFiles = copier.copyFilesInOrder(sorted, "Partials/Partial2/ordered_media");
 
         //Procesar con Gemini
         Map<String, String> descriptions = new LinkedHashMap<>();
@@ -64,15 +62,48 @@ public class Main {
 
             descriptions.put(file.getName(), response);
 
-            Thread.sleep(1000); // evitar rate limit
+            Thread.sleep(2000); // evitar rate limit
         }
 
         //Guardar resultados
-        store.saveAsJson(descriptions, "descriptions.json");
+        store.saveAsJson(descriptions, "Partials/Partial2/descriptions.json");
 
-        File summaryImage = gemini.generateSummaryImage(descriptions, "summary.png");
+        boolean hasErrors = descriptions.containsValue("No description found");
 
-        System.out.println("Summary image created: " + summaryImage.getAbsolutePath());
+        if (hasErrors) {
+            System.out.println("Some descriptions failed. Image won't be generated.");
+        } else {
+            File summaryImage = gemini.generateSummaryImage(descriptions, "summary.png");
+
+            if (summaryImage != null) {
+                System.out.println("Image generated at: " + summaryImage.getAbsolutePath());
+            } else {
+                System.out.println("Unable to generate image.");
+            }
+        }
+
+        TTSService tts = new TTSService(); // No API key needed
+
+        List<File> audioFiles = new ArrayList<>();
+        List<String> keys = new ArrayList<>(descriptions.keySet());
+
+        for (int i = 0; i < keys.size(); i++) {
+            String desc = descriptions.get(keys.get(i));
+
+            File audio = tts.generateAudio(desc, "audio_" + i + ".mp3");
+            audioFiles.add(audio); // may be null if something went wrong — VideoCreator handles it
+
+            Thread.sleep(1200); // stay polite with Google's free endpoint
+        }
+
+        // Create the final video
+        VideoCreator vc = new VideoCreator();
+        vc.createVideo(copiedFiles.stream()
+            .map(f -> new MediaFile(f))  
+            .collect(Collectors.toList()),
+            audioFiles
+        );
+
     }
 
 }

@@ -3,6 +3,7 @@ package Partials.Partial2.src.GeminiRequest;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
@@ -17,19 +18,29 @@ public class GeminiService {
         this.apiKey = apiKey;
     }
 
-    /**
-     * Método principal que:
-     * 1. Envía el archivo a Gemini
-     * 2. Obtiene el JSON
-     * 3. Extrae el texto de la respuesta
-     */
+
     public String describeMedia(File file) throws IOException, InterruptedException {
-        String jsonResponse = sendRequest(file);
-        return extractText(jsonResponse);
+
+        int attempts = 0;
+
+        while (attempts < 3) {
+            String json = sendRequest(file);
+
+            if (!json.contains("\"error\": \"")) {
+                return extractText(json);
+            }
+
+            System.out.println("Retrying... attempt " + (attempts + 1));
+            Thread.sleep(2000); // Stay polite and patient with Gemini
+            attempts++;
+        }
+
+        return "Failed to get a valid response after 3 attempts.";
+
     }
 
     /**
-     * Construye y ejecuta la petición con curl usando ProcessBuilder
+     * Builds and executes curl with ProcessBuilder, returns raw JSON response as String
      */
     private String sendRequest(File file) throws IOException, InterruptedException {
 
@@ -39,7 +50,7 @@ public class GeminiService {
         String payload = "{"
                 + "\"contents\":[{"
                 + "\"parts\":["
-                + "{\"text\":\"Describe briefly this media\"},"
+                + "{\"text\":\"Describe this media in 1 short sentence\"},"
                 + "{"
                 + "\"inline_data\":{"
                 + "\"mime_type\":\"" + mimeType + "\","
@@ -50,12 +61,20 @@ public class GeminiService {
                 + "}]"
                 + "}";
 
+        //Create Temporal JSON file for curl
+        File tempJson = File.createTempFile("request", ".json");
+
+        try (FileWriter writer = new FileWriter(tempJson)) {
+            writer.write(payload);
+        }
+
+        //Usar archivo en curl
         ProcessBuilder pb = new ProcessBuilder(
                 "curl",
                 "-X", "POST",
                 "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey,
                 "-H", "Content-Type: application/json",
-                "-d", payload
+                "-d", "@" + tempJson.getAbsolutePath()
         );
 
         pb.redirectErrorStream(true);
@@ -74,12 +93,16 @@ public class GeminiService {
         }
 
         process.waitFor();
+        tempJson.delete();
 
-        return response.toString();
+        String result = response.toString();
+        System.out.println("RAW Gemini Response: "+ result);
+        return result;
     }
 
     /**
-     * Detecta el MIME type básico
+     * Detects the MIME type based on file extension
+     * MIME: Multipurpose Internet Mail Extensions, standard way to indicate file types on the web.
      */
     private String getMimeType(File file) {
         String name = file.getName().toLowerCase();
@@ -92,7 +115,7 @@ public class GeminiService {
     }
 
     /**
-     * Convierte archivo a Base64
+     * Base 64
      */
     private String encodeFileToBase64(File file) throws IOException {
         byte[] fileContent = Files.readAllBytes(file.toPath());
@@ -100,7 +123,7 @@ public class GeminiService {
     }
 
     /**
-     * Extrae el texto desde el JSON de Gemini SIN usar librerías externas
+     * Extracts the "text" field from Gemini's JSON response, handling escaped characters
      */
     private String extractText(String json) {
 
@@ -118,7 +141,7 @@ public class GeminiService {
         for (int i = start; i < json.length(); i++) {
             char c = json.charAt(i);
 
-            // Detecta cierre de string (ignorando comillas escapadas)
+            // Detects the closing quote that is not escaped
             if (c == '"' && json.charAt(i - 1) != '\\') {
                 break;
             }
@@ -145,12 +168,17 @@ public class GeminiService {
                     + "}]"
                     + "}";
 
+            File tempJson = File.createTempFile("request", ".json");
+            try (FileWriter writer = new FileWriter(tempJson)) {
+                writer.write(payload);
+            }
+
             ProcessBuilder pb = new ProcessBuilder(
                     "curl",
                     "-X", "POST",
                     "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey,
                     "-H", "Content-Type: application/json",
-                    "-d", payload
+                    "-d", "@" + tempJson.getAbsolutePath()
             );
 
             pb.redirectErrorStream(true);
@@ -169,9 +197,24 @@ public class GeminiService {
             }
 
             process.waitFor();
+            tempJson.delete();
+
+            String jsonResponse = response.toString();
+            System.out.println("IMAGE RESPONSE:");
+            System.out.println(response.toString());
+
+            if (jsonResponse.contains("\"error\": \"")) {
+                System.out.println("Error generating image");
+                return null;
+            }
 
             String base64Image = extractImageBase64(response.toString());
 
+            if (base64Image == null) {
+                System.out.println("No image data found in response");
+                return null;
+            }
+            
             return saveImage(base64Image, outputPath);
         }
     
@@ -192,11 +235,17 @@ public class GeminiService {
 
     private String extractImageBase64(String json) {
 
+        if (json.contains("\"error\"")) {
+            System.out.println("Image API ERROR: " + json);
+            return null;
+        }
+
         String key = "\"data\": \"";
         int start = json.indexOf(key);
 
         if (start == -1) {
-            throw new RuntimeException("No image found in response");
+            System.out.println("No image in response. RAW: " + json);
+            return null;
         }
 
         start += key.length();

@@ -11,6 +11,11 @@ public class MediaFile {
         this.dateTaken = dateTaken;
     }
 
+    public MediaFile(File file) {
+        this.file = file;
+        this.dateTaken = "Unknown";
+    }
+
     public File getFile() { return file; }
     public String getDateTaken() { return dateTaken; }
 
@@ -18,10 +23,10 @@ public class MediaFile {
     public boolean isVideo() {
         String fileName = file.getName().toLowerCase();
 
-        // Obtener extensión
+        // Obtain Extension
         int dotIndex = fileName.lastIndexOf('.');
         if (dotIndex == -1) {
-            return false; // No tiene extensión
+            return false; // Doesn't have an extension
         }
 
         String extension = fileName.substring(dotIndex + 1);

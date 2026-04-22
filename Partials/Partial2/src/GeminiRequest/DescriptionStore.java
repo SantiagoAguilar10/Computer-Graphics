@@ -7,7 +7,7 @@ import java.util.Map;
 public class DescriptionStore {
 
     /**
-     * Guarda descripciones en formato JSON
+     * Save descriptions as JSON file with format:
      */
     public void saveAsJson(Map<String, String> descriptions, String path) throws IOException {
 
@@ -39,7 +39,7 @@ public class DescriptionStore {
     }
 
     /**
-     * Escapa caracteres peligrosos para JSON
+     * Escape JSON
      */
     private String escapeJson(String text) {
         return text
