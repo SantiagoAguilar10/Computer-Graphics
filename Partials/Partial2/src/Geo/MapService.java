@@ -11,6 +11,15 @@ public class MapService {
         this.apiKey = apiKey;
     }
 
+    /**
+     * Generates a static map image with two pins for the given first and last GeoLocations.
+     * @param first
+     * @param last
+     * @param outputPath
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public File generateMap(GeoLocation first, GeoLocation last, String outputPath)
             throws IOException, InterruptedException {
 
@@ -49,6 +58,13 @@ public class MapService {
         return out;
     }
 
+
+    /**
+     * Builds the GeoApify Static Maps API URL with the given first and last GeoLocations, including markers and appropriate zoom level.
+     * @param first
+     * @param last
+     * @return
+     */
     private String buildUrl(GeoLocation first, GeoLocation last) {
         double lon1 = first.getLongitude();
         double lat1 = first.getLatitude();
@@ -76,6 +92,10 @@ public class MapService {
     /**
      * Estimates an appropriate zoom level based on distance between two points.
      * Uses the Haversine formula to get distance in km, then maps to zoom.
+     * @param lat1
+     * @param lon1
+     * @param lat2
+     * @param lon2
      */
     private int calculateZoom(double lat1, double lon1, double lat2, double lon2) {
         double R = 6371; // Earth radius km

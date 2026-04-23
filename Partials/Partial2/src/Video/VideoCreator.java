@@ -14,6 +14,13 @@ public class VideoCreator {
         createVideo(mediaFiles, audioFiles, DEFAULT_IMAGE_DURATION);
     }
 
+    /**
+     * Creates a video by combining media files with their corresponding TTS audio.
+     * Images are shown for the duration of their TTS audio (or a default if no audio).
+     * @param mediaFiles
+     * @param audioFiles
+     * @param imageDurationSeconds
+     */
     public void createVideo(List<MediaFile> mediaFiles, List<File> audioFiles, int imageDurationSeconds) {
         try {
             // Build one segment per media file (video + its TTS audio)
@@ -55,9 +62,14 @@ public class VideoCreator {
     }
 
     // Segment builders
+
     /**
      * Image + TTS audio = segment.
      * The segment duration matches the audio length (or fallback seconds).
+     * @param image Input image file
+     * @param audio Input TTS audio file (can be null for silent segments)
+     * @param duration Duration in seconds if no audio is provided (ignored if audio exists)
+     * @param output Output segment file path (e.g. "segment_0.mp4
      */
     private void buildImageSegment(File image, File audio, double duration, String output) throws Exception {
         String videoFilter =
@@ -85,6 +97,9 @@ public class VideoCreator {
     /**
      * Video (audio stripped) + TTS audio = segment.
      * Duration is clamped to the longer of video/audio so nothing is cut short.
+     * @param video Input video file (audio will be ignored)
+     * @param audio Input TTS audio file (can be null for silent segments)
+     * @param output Output segment file path (e.g. "segment_0.mp4")
      */
     private void buildVideoSegment(File video, File audio, String output) throws Exception {
         String videoFilter =
@@ -117,6 +132,12 @@ public class VideoCreator {
     }
 
     // Concat
+    /**
+     * Concatenates video segments into one final video using ffmpeg concat demuxer.
+     * @param segments
+     * @param output
+     * @throws Exception
+     */
     private void concatSegments(List<String> segments, String output) throws Exception {
         File listFile = new File("segments_list.txt");
         try (PrintWriter pw = new PrintWriter(listFile)) {
@@ -136,6 +157,11 @@ public class VideoCreator {
     }
 
     // Helpers :)
+    /**
+     * Runs a command and waits for it to finish. Output is printed to console.
+     * @param cmd
+     * @throws Exception
+     */
     private void runCommand(String cmd) throws Exception {
         ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c", cmd);
         pb.redirectErrorStream(true);
@@ -155,6 +181,12 @@ public class VideoCreator {
         return probeDuration(filePath);
     }
 
+    /**
+     * Probes the duration of a media file using ffprobe. Returns a fallback duration if probing fails.
+     * @param filePath
+     * @return
+     * @throws Exception
+     */
     private double probeDuration(String filePath) throws Exception {
         ProcessBuilder pb = new ProcessBuilder(
             "cmd.exe", "/c",
@@ -186,6 +218,10 @@ public class VideoCreator {
     /**
      * Creates a black slide with the quote as white centered text.
      * Duration matches the TTS audio of the quote.
+     * @param quote The text to display on the slide
+     * @param audio The TTS audio file for the quote (can be null for silent
+     * slide, but quote should still be shown for the default duration)
+     * @param output The output video file path (e.g. "segment_quote.mp4
      */
     public File createQuoteSlide(String quote, File audio, String output) throws Exception {
         double duration = (audio != null) ? getAudioDuration(audio.getAbsolutePath()) : 5.0;
@@ -229,7 +265,12 @@ public class VideoCreator {
         return out.exists() ? out : null;
     }
 
-
+    /**
+     * Splits a long quote into multiple lines for better readability on the video slide.
+     * @param text
+     * @param maxChars
+     * @return
+     */
     private List<String> splitLines(String text, int maxChars) {
         List<String> lines = new ArrayList<>();
         String[] words = text.split(" ");

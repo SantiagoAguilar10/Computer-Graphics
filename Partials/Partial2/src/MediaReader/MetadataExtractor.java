@@ -11,6 +11,11 @@ import Partials.Partial2.src.Geo.LocationSummary;
 
 public class MetadataExtractor {
 
+    /**
+     * Extracts metadata from a list of files and returns a list of MediaFile objects containing the file and its date taken.
+     * @param files
+     * @return
+     */
     public List<MediaFile> extractMetadata(List<File> files) {
         List<MediaFile> result = new ArrayList<>();
 
@@ -22,6 +27,11 @@ public class MetadataExtractor {
         return result;
     }
 
+    /**
+     * Uses exiftool to extract the DateTimeOriginal metadata from the file. Returns "unknown" if it fails.
+     * @param file
+     * @return
+     */
     private String getDate(File file) {
         try {
             ProcessBuilder pb = new ProcessBuilder(
@@ -48,6 +58,11 @@ public class MetadataExtractor {
         return "unknown";
     }
 
+    /**
+     * Extracts the first and last locations from a list of sorted media files.
+     * @param sortedMedia
+     * @return
+     */
     public LocationSummary extractFirstAndLastLocation(List<MediaFile> sortedMedia) {
 
         if (sortedMedia == null || sortedMedia.isEmpty()) {
@@ -63,6 +78,12 @@ public class MetadataExtractor {
         return new LocationSummary(firstLoc, lastLoc);
     }
 
+    /**
+     * Uses exiftool to extract GPSLatitude and GPSLongitude metadata from the file and returns a GeoLocation object. 
+     * Returns null if it fails or if no GPS data is found.
+     * @param file
+     * @return
+     */
     private GeoLocation getGeoLocation(File file) {
 
         try {
@@ -103,6 +124,12 @@ public class MetadataExtractor {
         return null; // no hay GPS
     }
 
+    /**
+     * Parses a line of the format "Key : Value" and returns the Value as a double. 
+     * Used for parsing GPS coordinates from exiftool output.
+     * @param line
+     * @return
+     */
     private double parseDoubleValue(String line) {
         try {
             return Double.parseDouble(line.split(":", 2)[1].trim());

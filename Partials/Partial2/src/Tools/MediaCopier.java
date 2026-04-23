@@ -10,6 +10,13 @@ import java.util.ArrayList;
 
 public class MediaCopier {
 
+    /**
+     * Copies media files to the output directory in the order they appear in the list.
+     * @param mediaList
+     * @param outputDirPath
+     * @return
+     * @throws IOException
+     */
     public List<File> copyFilesInOrder(List<MediaFile> mediaList, String outputDirPath) throws IOException {
         List<File> copiedFiles = new ArrayList<>();
         File outputDir = new File(outputDirPath);

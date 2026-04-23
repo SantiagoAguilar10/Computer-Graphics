@@ -18,7 +18,13 @@ public class GeminiService {
         this.apiKey = apiKey;
     }
 
-
+    /**
+     * Sends a media file to Gemini for description, with up to 3 retries if an error is detected in the response.
+     * @param file
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public String describeMedia(File file) throws IOException, InterruptedException {
 
         int attempts = 0;
@@ -42,6 +48,8 @@ public class GeminiService {
 
     /**
      * Builds and executes curl with ProcessBuilder, returns raw JSON response as String
+     * @param file
+     * @return
      */
     private String sendRequest(File file) throws IOException, InterruptedException {
 
@@ -104,6 +112,8 @@ public class GeminiService {
     /**
      * Detects the MIME type based on file extension
      * MIME: Multipurpose Internet Mail Extensions, standard way to indicate file types on the web.
+     * @param file
+     * @return
      */
     private String getMimeType(File file) {
         String name = file.getName().toLowerCase();
@@ -116,7 +126,10 @@ public class GeminiService {
     }
 
     /**
-     * Base 64
+     * Encodes a file to Base64 format
+     * @param file
+     * @return
+     * @throws IOException
      */
     private String encodeFileToBase64(File file) throws IOException {
         byte[] fileContent = Files.readAllBytes(file.toPath());
@@ -125,6 +138,8 @@ public class GeminiService {
 
     /**
      * Extracts the "text" field from Gemini's JSON response, handling escaped characters
+     * @param json
+     * @return
      */
     private String extractText(String json) {
 
@@ -155,6 +170,15 @@ public class GeminiService {
                 .replace("\\\"", "\"");
     }
 
+    /**
+     * Generates a summary image based on the provided descriptions using Gemini's image generation capabilities. 
+     * Returns the saved image file or null if generation failed.
+     * @param descriptions
+     * @param outputPath
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public File generateSummaryImage(Map<String, String> descriptions, String outputPath) 
 
         throws IOException, InterruptedException {
@@ -226,6 +250,14 @@ public class GeminiService {
             return saveImage(base64Image, outputPath);
         }
     
+    
+
+        /**
+         * Builds a prompt for Gemini's image generation based on the provided scene descriptions. 
+         * The prompt instructs Gemini to create a single, cohesive image that captures the essence of all scenes, while ignoring any failed or empty descriptions.
+         * @param descriptions
+         * @return
+         */
     private String buildSummaryPrompt(Map<String, String> descriptions) {
         StringBuilder sb = new StringBuilder();
         sb.append("Based on the following descriptions, create a single image that represents the essence of all scenes:\n\n");
@@ -244,6 +276,13 @@ public class GeminiService {
         return escapeJson(sb.toString());
     }
 
+    /**
+     * Generates a short inspirational quote based on the provided scene descriptions using Gemini.
+     * @param descriptions
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public String generateQuote(Map<String, String> descriptions) 
         throws IOException, InterruptedException {
 
@@ -344,7 +383,15 @@ public class GeminiService {
 
         return result.toString();
     }
-
+    /**
+     * Saves a Base64-encoded image string to a file. 
+     * Validates that the decoded data is a PNG or JPEG image before saving. 
+     * Returns the saved File object or null if the data is invalid.
+     * @param base64
+     * @param outputPath
+     * @return
+     * @throws IOException
+     */
     private File saveImage(String base64, String outputPath) throws IOException {
         byte[] imageBytes = Base64.getDecoder().decode(base64);
 

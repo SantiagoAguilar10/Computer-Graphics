@@ -4,6 +4,11 @@ import java.util.List;
 
 public class FileScanner {
 
+    /**
+     * Scans the specified directory and returns a list of File objects representing the files in that directory.
+     * @param path
+     * @return
+     */
     public List<File> getFiles(String path) {
         File folder = new File(path);
         System.out.println("Scanning folder: " + folder.getAbsolutePath());

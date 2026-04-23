@@ -57,12 +57,12 @@ public class Main {
         // Copy files in order
         var copiedFiles = copier.copyFilesInOrder(sorted, "Partials/Partial2/ordered_media");
 
-        // Describe with Gemini
+        // Describe each MediaFile with Gemini
         Map<String, String> descriptions = new LinkedHashMap<>();
         for (File file : copiedFiles) {
             String response = gemini.describeMedia(file);
             descriptions.put(file.getName(), response);
-            Thread.sleep(2000);
+            Thread.sleep(2000); // Stay polite with Gemini's rate limits
         }
 
         store.saveAsJson(descriptions, "Partials/Partial2/descriptions.json");
@@ -118,11 +118,11 @@ public class Main {
             System.out.println("No summary image - video starts directly with media.");
         }
 
-        // [1..n] Ordered media + TTS audio
+        // Ordered media + TTS audio
         copiedFiles.stream().map(f -> new MediaFile(f)).forEach(allMedia::add);
         allAudio.addAll(audioFiles);
 
-        // [n+1] Map image (no audio)
+        // Map image (no audio)
         MapService mapService = new MapService(GeoApifyAPIKey);
         if (locations != null) {
             File mapImage = mapService.generateMap(
@@ -136,7 +136,7 @@ public class Main {
             }
         }
 
-        // [n+2] Quote slide (audio baked in — handled by segment_quote check in VideoCreator)
+        // Quote slide (audio baked in — handled by segment_quote check in VideoCreator)
         VideoCreator vc = new VideoCreator();
         if (quote != null) {
             File quoteSlide = vc.createQuoteSlide(quote, quoteAudio, "segment_quote.mp4");

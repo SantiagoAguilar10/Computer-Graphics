@@ -14,6 +14,8 @@ public class AudioNormalizer {
      * Two-pass process:
      *   Analyze the audio
      *   Apply the measured correction
+     * @param inputVideo The input video file path
+     * @param outputVideo The output video file path (e.g. "final_normalized
      */
     public File normalize(String inputVideo, String outputVideo)
             throws IOException, InterruptedException {
@@ -74,6 +76,13 @@ public class AudioNormalizer {
     }
 
     // Runs a command and returns its full output as a String
+    /**
+     * Runs a command and captures its full output as a String. Waits for the process to finish.
+     * @param cmd
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     private String runCommandAndCapture(String cmd) throws IOException, InterruptedException {
         ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c", cmd);
         pb.redirectErrorStream(true);
@@ -83,6 +92,12 @@ public class AudioNormalizer {
         return output;
     }
 
+    /**
+     * Runs a command without capturing output. Waits for the process to finish.
+     * @param cmd
+     * @throws IOException
+     * @throws InterruptedException
+     */
     private void runCommand(String cmd) throws IOException, InterruptedException {
         ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c", cmd);
         pb.redirectErrorStream(true);
@@ -95,6 +110,12 @@ public class AudioNormalizer {
     }
 
     // Extracts a value from ffmpeg's JSON-like loudnorm output
+    /**
+     * Extracts a value from ffmpeg's JSON-like loudnorm output based on the provided key.
+     * @param output
+     * @param key
+     * @return
+     */
     private String extractJson(String output, String key) {
         String search = "\"" + key + "\" : \"";
         int start = output.indexOf(search);

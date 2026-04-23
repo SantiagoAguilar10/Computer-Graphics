@@ -56,6 +56,8 @@ public class TTSService {
 
     /**
      * Downloads one TTS chunk from Google Translate using curl.
+     * @param text The text to synthesize (must be <= MAX_CHUNK)
+     * @param outputFile The output MP3 file path
      */
     private void downloadChunk(String text, String outputFile) throws Exception {
         String encoded = URLEncoder.encode(text, StandardCharsets.UTF_8);
@@ -77,6 +79,8 @@ public class TTSService {
 
     /**
      * Splits text into chunks at word boundaries, respecting MAX_CHUNK.
+     * @param text The input text to split
+     * @param maxLen The maximum length of each chunk
      */
     private List<String> splitText(String text, int maxLen) {
         List<String> chunks = new ArrayList<>();
@@ -99,6 +103,8 @@ public class TTSService {
 
     /**
      * Concatenates multiple MP3 files into one using ffmpeg concat demuxer.
+     * @param files List of input MP3 file paths to concatenate
+     * @param output The output MP3 file path
      */
     private void concatAudioFiles(List<String> files, String output) throws Exception {
         // Write a concat list file
@@ -123,6 +129,9 @@ public class TTSService {
 
     /**
      * Generates a silent MP3 of the given duration (fallback for failed descriptions).
+     * @param filename The output MP3 file path
+     * @param seconds The duration of the silent audio
+     * @return The generated File object or null if failed
      */
     private File generateSilence(String filename, int seconds) throws Exception {
         ProcessBuilder pb = new ProcessBuilder(
