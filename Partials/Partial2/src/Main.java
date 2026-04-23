@@ -5,29 +5,32 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import Partials.Partial2.src.GeminiRequest.DescriptionStore;
 import Partials.Partial2.src.GeminiRequest.GeminiService;
 import Partials.Partial2.src.Geo.LocationSummary;
+import Partials.Partial2.src.Geo.MapService;
 import Partials.Partial2.src.MediaReader.FileScanner;
 import Partials.Partial2.src.MediaReader.MediaFile;
 import Partials.Partial2.src.MediaReader.MediaSorter;
 import Partials.Partial2.src.MediaReader.MetadataExtractor;
+import Partials.Partial2.src.Tools.AudioNormalizer;
 import Partials.Partial2.src.Tools.MediaCopier;
+import Partials.Partial2.src.Tools.TTSService;
 import Partials.Partial2.src.Video.VideoCreator;
 
 public class Main {
     public static void main(String[] args) throws Exception {
 
-        final String GeminiAPIKey = "";
+        final String GeminiAPIKey = "GeminiAPIGoesHere";
+        final String GeoApifyAPIKey = "GeoApifyKeyGoesHere";
 
         String folderPath = "Partials/Partial2/MediaInput";
 
-        // Scan, extract metadata, sort 
-        FileScanner scanner   = new FileScanner();
+        // Scan, extract metadata, sort
+        FileScanner scanner     = new FileScanner();
         MetadataExtractor extractor = new MetadataExtractor();
-        MediaSorter sorter    = new MediaSorter();
+        MediaSorter sorter      = new MediaSorter();
 
         System.out.println("No errors in path");
 
@@ -47,63 +50,117 @@ public class Main {
             System.out.println("Could not extract locations.");
         }
 
-        MediaCopier copier = new MediaCopier();
+        MediaCopier copier  = new MediaCopier();
         GeminiService gemini = new GeminiService(GeminiAPIKey);
         DescriptionStore store = new DescriptionStore();
 
-        //Copiar archivos en orden
+        // Copy files in order
         var copiedFiles = copier.copyFilesInOrder(sorted, "Partials/Partial2/ordered_media");
 
-        //Procesar con Gemini
+        // Describe with Gemini
         Map<String, String> descriptions = new LinkedHashMap<>();
-
         for (File file : copiedFiles) {
             String response = gemini.describeMedia(file);
-
             descriptions.put(file.getName(), response);
-
-            Thread.sleep(2000); // evitar rate limit
+            Thread.sleep(2000);
         }
 
-        //Guardar resultados
         store.saveAsJson(descriptions, "Partials/Partial2/descriptions.json");
 
+        // Summary image
         boolean hasErrors = descriptions.containsValue("No description found");
+        if (hasErrors) System.out.println("Some descriptions are incomplete - attempting to generate image anyway.");
 
-        if (hasErrors) {
-            System.out.println("Some descriptions failed. Image won't be generated.");
+        File summaryImage = gemini.generateSummaryImage(descriptions, "Partials/Partial2/summary.jpg");
+        if (summaryImage != null) {
+            System.out.println("Image generated at: " + summaryImage.getAbsolutePath());
         } else {
-            File summaryImage = gemini.generateSummaryImage(descriptions, "summary.png");
-
-            if (summaryImage != null) {
-                System.out.println("Image generated at: " + summaryImage.getAbsolutePath());
-            } else {
-                System.out.println("Unable to generate image.");
-            }
+            System.out.println("Gemini 2.5 was Unable to generate the image.");
         }
 
-        TTSService tts = new TTSService(); // No API key needed
-
+        // Generate TTS audio for each description
+        TTSService tts = new TTSService();
         List<File> audioFiles = new ArrayList<>();
         List<String> keys = new ArrayList<>(descriptions.keySet());
 
         for (int i = 0; i < keys.size(); i++) {
             String desc = descriptions.get(keys.get(i));
-
             File audio = tts.generateAudio(desc, "audio_" + i + ".mp3");
-            audioFiles.add(audio); // may be null if something went wrong — VideoCreator handles it
+            audioFiles.add(audio);
+            Thread.sleep(1200);
+        }
 
-            Thread.sleep(1200); // stay polite with Google's free endpoint
+        // Generate quote + its audio
+        String quote = gemini.generateQuote(descriptions);
+
+        if (quote == null) {
+            quote = "Every journey has a story worth remembering.";
+            System.out.println("Using fallback quote");
+        }
+
+        System.out.println("Quote result: " + quote);
+        File quoteAudio = null;
+
+        if (quote != null) {
+            System.out.println("Quote: " + quote);
+            quoteAudio = tts.generateAudio(quote, "audio_quote.mp3");
+        }
+
+        // Build all media and audio lists
+        List<MediaFile> allMedia = new ArrayList<>();
+        List<File> allAudio     = new ArrayList<>();
+
+        // [0] Summary image (no audio)
+        if (summaryImage != null) {
+            allMedia.add(new MediaFile(summaryImage));
+            allAudio.add(null);
+        } else {
+            System.out.println("No summary image - video starts directly with media.");
+        }
+
+        // [1..n] Ordered media + TTS audio
+        copiedFiles.stream().map(f -> new MediaFile(f)).forEach(allMedia::add);
+        allAudio.addAll(audioFiles);
+
+        // [n+1] Map image (no audio)
+        MapService mapService = new MapService(GeoApifyAPIKey);
+        if (locations != null) {
+            File mapImage = mapService.generateMap(
+                locations.getFirstLocation(),
+                locations.getLastLocation(),
+                "map.jpg"
+            );
+            if (mapImage != null) {
+                allMedia.add(new MediaFile(mapImage));
+                allAudio.add(null);
+            }
+        }
+
+        // [n+2] Quote slide (audio baked in — handled by segment_quote check in VideoCreator)
+        VideoCreator vc = new VideoCreator();
+        if (quote != null) {
+            File quoteSlide = vc.createQuoteSlide(quote, quoteAudio, "segment_quote.mp4");
+            System.out.println("Quote slide exists: " + (quoteSlide != null));
+            System.out.println("Quote slide path: " + (quoteSlide != null ? quoteSlide.getAbsolutePath() : "NULL"));
+            if (quoteSlide != null) {
+                allMedia.add(new MediaFile(quoteSlide));
+                allAudio.add(null); // audio already baked into the segment
+            }
         }
 
         // Create the final video
-        VideoCreator vc = new VideoCreator();
-        vc.createVideo(copiedFiles.stream()
-            .map(f -> new MediaFile(f))  
-            .collect(Collectors.toList()),
-            audioFiles
-        );
+        vc.createVideo(allMedia, allAudio);
 
+        // Check output.mp4 exists before normalization
+        File outputVideo = new File("output.mp4");
+        System.out.println("output.mp4 exists: " + outputVideo.exists());
+        System.out.println("output.mp4 absolute path: " + outputVideo.getAbsolutePath());
+
+        // Normalize
+        String outputPath = new File("output.mp4").getAbsolutePath();
+        String normalizedPath = new File("output_normalized.mp4").getAbsolutePath();
+
+        AudioNormalizer normalizer = new AudioNormalizer();
+        normalizer.normalize(outputPath, normalizedPath);
     }
-
 }

@@ -2,7 +2,8 @@ package Partials.Partial2.src.Video;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.*;
-
+import java.util.List;
+import java.util.ArrayList;
 import Partials.Partial2.src.MediaReader.MediaFile;
 
 
@@ -21,14 +22,21 @@ public class VideoCreator {
 
             for (int i = 0; i < mediaFiles.size(); i++) {
                 MediaFile mf = mediaFiles.get(i);
+                System.out.println("Processing: " + mf.getFile().getName());
+
                 File audio = (audioFiles != null && i < audioFiles.size()) ? audioFiles.get(i) : null;
                 String segmentOut = "segment_" + i + ".mp4";
+
+                if (mf.getFile().getName().startsWith("segment_quote")) {
+                    segmentFiles.add(mf.getFile().getAbsolutePath()); // use as-is
+                    continue; // skip re-encoding
+                }
 
                 if (mf.isVideo()) {
                     buildVideoSegment(mf.getFile(), audio, segmentOut);
                 } else {
                     double duration = (audio != null) ? getAudioDuration(audio.getAbsolutePath())
-                                                      : imageDurationSeconds;
+                                                    : imageDurationSeconds;
                     buildImageSegment(mf.getFile(), audio, duration, segmentOut);
                 }
 
@@ -36,7 +44,7 @@ public class VideoCreator {
             }
 
             //Concatenate all segments into output.mp4
-            concatSegments(segmentFiles, "output.mp4");
+            concatSegments(segmentFiles, "Partials/Partial2/outputfinal.mp4");
 
             // Clean up segment files
             for (String seg : segmentFiles) new File(seg).delete();
@@ -69,9 +77,10 @@ public class VideoCreator {
             + audioMap
             + " \"" + output + "\"";
 
-        System.out.println("CMD: " + cmd); // Debug
+        // System.out.println("CMD: " + cmd); // Debug
+        System.out.println("Building segment for: " + image.getAbsolutePath());
         runCommand(cmd);
-        System.out.println("Segment done: " + output); // Debug
+        // System.out.println("Segment done: " + output); // Debug
     }
 
     /**
@@ -119,7 +128,9 @@ public class VideoCreator {
 
         String cmd =
             "ffmpeg -y -f concat -safe 0 -i segments_list.txt"
-            + " -c copy \"" + output + "\"";
+            + " -c:v libx264 -crf 23 -preset fast"
+            + " -c:a aac"
+            + " \"" + new File("output.mp4").getAbsolutePath() + "\"";
 
         runCommand(cmd);
         listFile.delete();
@@ -169,7 +180,70 @@ public class VideoCreator {
             } catch (NumberFormatException ignored) {}
         }
 
-        System.out.println("Duration fallback for " + filePath);
+         // System.out.println("Duration fallback for " + filePath); // Debug
         return 3.0; //only reaches here if nothing parsed
+    }
+
+    /**
+     * Creates a black slide with the quote as white centered text.
+     * Duration matches the TTS audio of the quote.
+     */
+    public File createQuoteSlide(String quote, File audio, String output) throws Exception {
+        double duration = (audio != null) ? getAudioDuration(audio.getAbsolutePath()) : 5.0;
+
+        String safeQuote = quote.replace("'", "\u2019").replace("\"", "");
+
+        List<String> lines = splitLines(safeQuote, 30);
+
+        int fontSize = 60;
+        int lineSpacing = 20;
+        int totalHeight = lines.size() * (fontSize + lineSpacing);
+        int startY = (1920 - totalHeight) / 2;
+
+        StringBuilder vf = new StringBuilder();
+        for (int i = 0; i < lines.size(); i++) {
+            if (i > 0) vf.append(",");
+            int y = startY + i * (fontSize + lineSpacing);
+            vf.append("drawtext=text='").append(lines.get(i)).append("'")
+            .append(":fontcolor=white")
+            .append(":fontsize=").append(fontSize)
+            .append(":font='Arial'")
+            .append(":x=(w-text_w)/2")
+            .append(":y=").append(y);
+        }
+
+        String cmd = "ffmpeg -y"
+            + " -f lavfi -i color=c=black:s=1080x1920:r=25"
+            + (audio != null ? " -i \"" + audio.getAbsolutePath() + "\"" : "")
+            + " -t " + duration
+            + " -vf \"" + vf + "\""
+            + " -map 0:v"
+            + (audio != null ? " -map 1:a -c:a aac" : " -an")
+            + " -c:v libx264 -crf 23 -preset fast -shortest"
+            + " \"" + new File(output).getAbsolutePath() + "\"";
+
+        System.out.println("Quote slide CMD: " + cmd);
+        runCommand(cmd);
+
+        File out = new File(output);
+        System.out.println("Quote slide file exists: " + out.exists());
+        return out.exists() ? out : null;
+    }
+
+
+    private List<String> splitLines(String text, int maxChars) {
+        List<String> lines = new ArrayList<>();
+        String[] words = text.split(" ");
+        StringBuilder line = new StringBuilder();
+
+        for (String word : words) {
+            if (line.length() + word.length() + 1 > maxChars && line.length() > 0) {
+                lines.add(line.toString().trim());
+                line = new StringBuilder();
+            }
+            line.append(word).append(" ");
+        }
+        if (line.length() > 0) lines.add(line.toString().trim());
+        return lines;
     }
 }

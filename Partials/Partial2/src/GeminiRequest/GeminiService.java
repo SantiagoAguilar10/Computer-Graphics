@@ -25,13 +25,14 @@ public class GeminiService {
 
         while (attempts < 3) {
             String json = sendRequest(file);
+            //System.out.println("RAW for " + file.getName() + ": " + json); // Debug
 
             if (!json.contains("\"error\": \"")) {
                 return extractText(json);
             }
 
             System.out.println("Retrying... attempt " + (attempts + 1));
-            Thread.sleep(2000); // Stay polite and patient with Gemini
+            Thread.sleep(2500); // Stay polite and patient with Gemini
             attempts++;
         }
 
@@ -96,7 +97,7 @@ public class GeminiService {
         tempJson.delete();
 
         String result = response.toString();
-        System.out.println("RAW Gemini Response: "+ result);
+        // System.out.println("RAW Gemini Response: "+ result);  //Debug
         return result;
     }
 
@@ -161,12 +162,15 @@ public class GeminiService {
             String prompt = buildSummaryPrompt(descriptions);
 
             String payload = "{"
-                    + "\"contents\":[{"
-                    + "\"parts\":["
-                    + "{ \"text\": \"" + prompt + "\" }"
-                    + "]"
-                    + "}]"
-                    + "}";
+                + "\"contents\":[{"
+                + "\"parts\":["
+                + "{ \"text\": \"" + prompt + "\" }"
+                + "]"
+                + "}],"
+                + "\"generationConfig\":{"
+                + "\"responseModalities\":[\"TEXT\",\"IMAGE\"]"  // ← required for image output
+                + "}"
+                + "}";
 
             File tempJson = File.createTempFile("request", ".json");
             try (FileWriter writer = new FileWriter(tempJson)) {
@@ -200,8 +204,12 @@ public class GeminiService {
             tempJson.delete();
 
             String jsonResponse = response.toString();
+
+            // Debug
+            /* 
             System.out.println("IMAGE RESPONSE:");
             System.out.println(response.toString());
+            */
 
             if (jsonResponse.contains("\"error\": \"")) {
                 System.out.println("Error generating image");
@@ -219,34 +227,106 @@ public class GeminiService {
         }
     
     private String buildSummaryPrompt(Map<String, String> descriptions) {
-
         StringBuilder sb = new StringBuilder();
-
         sb.append("Based on the following descriptions, create a single image that represents the essence of all scenes:\n\n");
 
         for (String desc : descriptions.values()) {
+            // Skip failed or empty descriptions
+            if (desc == null 
+                || desc.startsWith("Failed") 
+                || desc.equals("No description found")) {
+                continue;
+            }
             sb.append("- ").append(desc).append("\n");
         }
 
         sb.append("\nThe image should be symbolic, visually appealing, and cohesive.");
-
         return escapeJson(sb.toString());
     }
+
+    public String generateQuote(Map<String, String> descriptions) 
+        throws IOException, InterruptedException {
+
+            StringBuilder prompt = new StringBuilder();
+            prompt.append("Based on these scene descriptions from a video, generate one short, ");
+            prompt.append("inspirational or motivational quote that captures the spirit of the journey. ");
+            prompt.append("Return ONLY the quote itself, no author, no quotation marks, no explanation.\\n\\n");
+
+            for (String desc : descriptions.values()) {
+                if (desc == null
+                    || desc.startsWith("Failed")
+                    || desc.equals("No description found")) continue;
+                prompt.append("- ").append(desc).append("\\n");
+            }
+
+            String payload = "{"
+                + "\"contents\":[{"
+                + "\"parts\":["
+                + "{ \"text\": \"" + escapeJson(prompt.toString()) + "\" }"
+                + "]"
+                + "}]"
+                + "}";
+
+            File tempJson = File.createTempFile("request", ".json");
+            try (FileWriter writer = new FileWriter(tempJson)) {
+                writer.write(payload);
+            }
+
+            ProcessBuilder pb = new ProcessBuilder(
+                "curl",
+                "-X", "POST",
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey,
+                "-H", "Content-Type: application/json",
+                "-d", "@" + tempJson.getAbsolutePath()
+            );
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
+            BufferedReader reader = new BufferedReader(
+                new InputStreamReader(process.getInputStream())
+            );
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) response.append(line);
+            process.waitFor();
+            System.out.println("Quote exit code: " + process.exitValue());
+            System.out.println("Quote RAW: " + response.toString());
+            tempJson.delete();
+
+            String json = response.toString();
+            System.out.println("\n \n \nQUOTE RESPONSE:");
+            System.out.println("Quote RAW: " + json); // Debug
+
+            if (json.contains("\"error\"")) {
+                System.out.println("Quote generation failed.");
+                return null;
+            }
+
+            return extractText(json);
+        }
 
     private String extractImageBase64(String json) {
 
         if (json.contains("\"error\"")) {
+            /*
             System.out.println("Image API ERROR: " + json);
+            */
             return null;
         }
 
         String key = "\"data\": \"";
         int start = json.indexOf(key);
-
         if (start == -1) {
-            System.out.println("No image in response. RAW: " + json);
+            /*/
+            System.out.println("No image in response. RAW: " + json); // Debug
+            */
             return null;
         }
+
+        start = json.indexOf(key, start);
+            if (start == -1) {
+                // System.out.println("No data field in inlineData. RAW: " + json); // Debug
+                return null;
+            }
 
         start += key.length();
 
@@ -266,15 +346,26 @@ public class GeminiService {
     }
 
     private File saveImage(String base64, String outputPath) throws IOException {
-
         byte[] imageBytes = Base64.getDecoder().decode(base64);
 
-        File outputFile = new File(outputPath);
+        boolean isPng  = imageBytes[0] == (byte)0x89 && imageBytes[1] == (byte)0x50;
+        boolean isJpeg = imageBytes[0] == (byte)0xFF && imageBytes[1] == (byte)0xD8;
 
+        if (!isPng && !isJpeg) {
+            System.out.println("Invalid image data received:");
+            System.out.println(new String(imageBytes, 0, Math.min(200, imageBytes.length)));
+            return null;
+        }
+
+        // Use correct extension
+        if (isJpeg && outputPath.endsWith(".png")) {
+            outputPath = outputPath.replace(".png", ".jpg");
+        }
+
+        File outputFile = new File(outputPath);
         try (FileOutputStream fos = new FileOutputStream(outputFile)) {
             fos.write(imageBytes);
         }
-
         return outputFile;
     }
 

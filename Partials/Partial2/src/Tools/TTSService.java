@@ -1,4 +1,4 @@
-package Partials.Partial2.src;
+package Partials.Partial2.src.Tools;
 
 import java.io.*;
 import java.net.URLEncoder;

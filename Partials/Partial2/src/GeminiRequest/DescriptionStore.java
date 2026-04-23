@@ -18,6 +18,7 @@ public class DescriptionStore {
         int count = 0;
         int size = descriptions.size();
 
+        // Escape JSON and write key-value pairs
         for (Map.Entry<String, String> entry : descriptions.entrySet()) {
 
             String file = escapeJson(entry.getKey());
