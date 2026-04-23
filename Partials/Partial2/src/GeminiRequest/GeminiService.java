@@ -333,7 +333,7 @@ public class GeminiService {
 
             String json = response.toString();
             System.out.println("\n \n \nQUOTE RESPONSE:");
-            System.out.println("Quote RAW: " + json); // Debug
+            // System.out.println("Quote RAW: " + json); // Debug
 
             if (json.contains("\"error\"")) {
                 System.out.println("Quote generation failed.");

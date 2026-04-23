@@ -206,7 +206,7 @@ public class VideoCreator {
                 double val = Double.parseDouble(line.trim());
                 if (val > 0) {
                     System.out.println("Duration probed for " + filePath + ": " + val);
-                    return val; // ← returns the real duration if found
+                    return val; // returns the real duration if found
                 }
             } catch (NumberFormatException ignored) {}
         }
